@@ -15,9 +15,8 @@ describe("Access Control Middleware", () => {
 
   beforeEach(() => {
     mockReq = {
-      user: undefined,
-      params: {} as Record<string, string> | undefined,
-      body: {} as Record<string, unknown> | undefined,
+      params: {},
+      body: {},
     };
     mockRes = {};
     mockNext = jest.fn();
