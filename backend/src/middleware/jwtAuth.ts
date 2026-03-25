@@ -76,28 +76,4 @@ export const requireWalletOwnership = (
   next();
 };
 
-export const requireBorrower = (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-): void => {
-  if (!req.user?.publicKey) {
-    throw AppError.unauthorized("Authentication required");
-  }
-
-  next();
-};
-
-export const requireLender = (
-  req: Request,
-  _res: Response,
-  next: NextFunction,
-): void => {
-  if (!req.user?.publicKey) {
-    throw AppError.unauthorized("Authentication required");
-  }
-
-  next();
-};
-
 export { JwtPayload };
