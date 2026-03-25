@@ -3,6 +3,11 @@ import {
   getBorrowerLoans,
   getLoanDetails,
 } from "../controllers/loanController.js";
+import { requireJwtAuth } from "../middleware/jwtAuth.js";
+import {
+  requireScope,
+  requireResourceOwnership,
+} from "../middleware/accessControl.js";
 
 const router = Router();
 
@@ -13,6 +18,8 @@ const router = Router();
  *     summary: Get loans for a specific borrower
  *     description: Returns all loans associated with a borrower address
  *     tags: [Loans]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: borrower
@@ -30,7 +37,12 @@ const router = Router();
  *       200:
  *         description: Loans retrieved successfully
  */
-router.get("/borrower/:borrower", getBorrowerLoans);
+router.get(
+  "/borrower/:borrower",
+  requireJwtAuth,
+  requireResourceOwnership((req) => req.params.borrower, ["admin", "lender"]),
+  getBorrowerLoans,
+);
 
 /**
  * @swagger
@@ -39,6 +51,8 @@ router.get("/borrower/:borrower", getBorrowerLoans);
  *     summary: Get loan details
  *     description: Returns detailed information about a specific loan
  *     tags: [Loans]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: loanId
@@ -50,6 +64,11 @@ router.get("/borrower/:borrower", getBorrowerLoans);
  *       200:
  *         description: Loan details retrieved successfully
  */
-router.get("/:loanId", getLoanDetails);
+router.get(
+  "/:loanId",
+  requireJwtAuth,
+  requireScope("read:loans"),
+  getLoanDetails,
+);
 
 export default router;
