@@ -9,6 +9,11 @@ import {
   simulatePaymentSchema,
 } from "../schemas/simulationSchemas.js";
 import { strictRateLimiter } from "../middleware/rateLimiter.js";
+import { requireJwtAuth } from "../middleware/jwtAuth.js";
+import {
+  requireScope,
+  requireResourceOwnership,
+} from "../middleware/accessControl.js";
 
 const router = Router();
 
@@ -19,6 +24,8 @@ const router = Router();
  *     summary: Get remittance history for a user
  *     description: Retrieve the remittance history for a specific user by their ID.
  *     tags: [Simulation]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -42,6 +49,8 @@ const router = Router();
 
 router.get(
   "/history/:userId",
+  requireJwtAuth,
+  requireResourceOwnership((req) => req.params.userId, ["admin", "lender"]),
   validate(getRemittanceHistorySchema),
   getRemittanceHistory,
 );
@@ -53,6 +62,8 @@ router.get(
  *     summary: Simulate a remittance payment
  *     description: Simulate a remittance payment and return the updated user score.
  *     tags: [Simulation]
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -85,6 +96,8 @@ router.get(
  */
 router.post(
   "/simulate",
+  requireJwtAuth,
+  requireScope("write:simulations"),
   strictRateLimiter,
   validate(simulatePaymentSchema),
   simulatePayment,
