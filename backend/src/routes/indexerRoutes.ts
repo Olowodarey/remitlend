@@ -8,6 +8,11 @@ import {
   createWebhookSubscription,
   deleteWebhookSubscription,
 } from "../controllers/indexerController.js";
+import { requireJwtAuth } from "../middleware/jwtAuth.js";
+import {
+  requireScope,
+  requireResourceOwnership,
+} from "../middleware/accessControl.js";
 
 const router = Router();
 
@@ -18,6 +23,8 @@ const router = Router();
  *     summary: Get indexer status
  *     description: Returns the current state of the event indexer including last indexed ledger and event counts
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Indexer status retrieved successfully
@@ -43,7 +50,12 @@ const router = Router();
  *                     eventsByType:
  *                       type: object
  */
-router.get("/status", getIndexerStatus);
+router.get(
+  "/status",
+  requireJwtAuth,
+  requireScope("read:events"),
+  getIndexerStatus,
+);
 
 /**
  * @swagger
@@ -52,6 +64,8 @@ router.get("/status", getIndexerStatus);
  *     summary: Get events for a specific borrower
  *     description: Returns all loan events associated with a borrower address
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: borrower
@@ -73,7 +87,12 @@ router.get("/status", getIndexerStatus);
  *       200:
  *         description: Events retrieved successfully
  */
-router.get("/events/borrower/:borrower", getBorrowerEvents);
+router.get(
+  "/events/borrower/:borrower",
+  requireJwtAuth,
+  requireResourceOwnership((req) => req.params.borrower, ["admin", "lender"]),
+  getBorrowerEvents,
+);
 
 /**
  * @swagger
@@ -82,6 +101,8 @@ router.get("/events/borrower/:borrower", getBorrowerEvents);
  *     summary: Get events for a specific loan
  *     description: Returns all events associated with a loan ID
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: loanId
@@ -93,7 +114,12 @@ router.get("/events/borrower/:borrower", getBorrowerEvents);
  *       200:
  *         description: Events retrieved successfully
  */
-router.get("/events/loan/:loanId", getLoanEvents);
+router.get(
+  "/events/loan/:loanId",
+  requireJwtAuth,
+  requireScope("read:events"),
+  getLoanEvents,
+);
 
 /**
  * @swagger
@@ -102,6 +128,8 @@ router.get("/events/loan/:loanId", getLoanEvents);
  *     summary: Get recent events
  *     description: Returns the most recent loan events, optionally filtered by event type
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: query
  *         name: limit
@@ -117,7 +145,12 @@ router.get("/events/loan/:loanId", getLoanEvents);
  *       200:
  *         description: Events retrieved successfully
  */
-router.get("/events/recent", getRecentEvents);
+router.get(
+  "/events/recent",
+  requireJwtAuth,
+  requireScope("read:events:all"),
+  getRecentEvents,
+);
 
 /**
  * @swagger
@@ -125,12 +158,16 @@ router.get("/events/recent", getRecentEvents);
  *   get:
  *     summary: List webhook subscriptions
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Webhook subscriptions retrieved successfully
  *   post:
  *     summary: Register a webhook subscription
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -152,8 +189,18 @@ router.get("/events/recent", getRecentEvents);
  *       201:
  *         description: Webhook subscription created successfully
  */
-router.get("/webhooks", listWebhookSubscriptions);
-router.post("/webhooks", createWebhookSubscription);
+router.get(
+  "/webhooks",
+  requireJwtAuth,
+  requireScope("read:webhooks"),
+  listWebhookSubscriptions,
+);
+router.post(
+  "/webhooks",
+  requireJwtAuth,
+  requireScope("write:webhooks"),
+  createWebhookSubscription,
+);
 
 /**
  * @swagger
@@ -161,6 +208,8 @@ router.post("/webhooks", createWebhookSubscription);
  *   delete:
  *     summary: Delete a webhook subscription
  *     tags: [Indexer]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: subscriptionId
@@ -171,6 +220,11 @@ router.post("/webhooks", createWebhookSubscription);
  *       200:
  *         description: Webhook subscription deleted successfully
  */
-router.delete("/webhooks/:subscriptionId", deleteWebhookSubscription);
+router.delete(
+  "/webhooks/:subscriptionId",
+  requireJwtAuth,
+  requireScope("delete:webhooks"),
+  deleteWebhookSubscription,
+);
 
 export default router;
