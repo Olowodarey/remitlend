@@ -50,7 +50,10 @@ const router = Router();
 router.get(
   "/history/:userId",
   requireJwtAuth,
-  requireResourceOwnership((req) => req.params.userId, ["admin", "lender"]),
+  requireResourceOwnership(
+    (req) => req.params.userId as string,
+    ["admin", "lender"],
+  ),
   validate(getRemittanceHistorySchema),
   getRemittanceHistory,
 );

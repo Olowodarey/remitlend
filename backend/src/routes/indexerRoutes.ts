@@ -90,7 +90,10 @@ router.get(
 router.get(
   "/events/borrower/:borrower",
   requireJwtAuth,
-  requireResourceOwnership((req) => req.params.borrower, ["admin", "lender"]),
+  requireResourceOwnership(
+    (req) => req.params.borrower as string,
+    ["admin", "lender"],
+  ),
   getBorrowerEvents,
 );
 

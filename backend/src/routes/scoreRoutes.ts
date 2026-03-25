@@ -47,7 +47,10 @@ const router = Router();
 router.get(
   "/:userId",
   requireJwtAuth,
-  requireResourceOwnership((req) => req.params.userId, ["admin", "lender"]),
+  requireResourceOwnership(
+    (req) => req.params.userId as string,
+    ["admin", "lender"],
+  ),
   validate(getScoreSchema),
   getScore,
 );

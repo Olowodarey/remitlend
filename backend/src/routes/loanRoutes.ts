@@ -40,7 +40,10 @@ const router = Router();
 router.get(
   "/borrower/:borrower",
   requireJwtAuth,
-  requireResourceOwnership((req) => req.params.borrower, ["admin", "lender"]),
+  requireResourceOwnership(
+    (req) => req.params.borrower as string,
+    ["admin", "lender"],
+  ),
   getBorrowerLoans,
 );
 

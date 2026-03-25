@@ -16,7 +16,7 @@ describe("Access Control Middleware", () => {
   beforeEach(() => {
     mockReq = {
       user: undefined,
-      params: {},
+      params: {} as Record<string, string>,
       body: {},
     };
     mockRes = {};
@@ -129,9 +129,11 @@ describe("Access Control Middleware", () => {
         iat: Date.now(),
         exp: Date.now() + 3600,
       } as JwtPayload;
-      mockReq.params = { userId: "GTEST123" };
+      mockReq.params = { userId: "GTEST123" } as Record<string, string>;
 
-      const middleware = requireResourceOwnership((req) => req.params.userId);
+      const middleware = requireResourceOwnership(
+        (req) => req.params!.userId as string,
+      );
       middleware(mockReq as Request, mockRes as Response, mockNext);
 
       expect(mockNext).toHaveBeenCalled();
@@ -144,10 +146,10 @@ describe("Access Control Middleware", () => {
         iat: Date.now(),
         exp: Date.now() + 3600,
       } as JwtPayload;
-      mockReq.params = { userId: "GTEST123" };
+      mockReq.params = { userId: "GTEST123" } as Record<string, string>;
 
       const middleware = requireResourceOwnership(
-        (req) => req.params.userId,
+        (req) => req.params!.userId as string,
         ["admin", "lender"],
       );
       middleware(mockReq as Request, mockRes as Response, mockNext);
@@ -162,9 +164,11 @@ describe("Access Control Middleware", () => {
         iat: Date.now(),
         exp: Date.now() + 3600,
       } as JwtPayload;
-      mockReq.params = { userId: "GTEST123" };
+      mockReq.params = { userId: "GTEST123" } as Record<string, string>;
 
-      const middleware = requireResourceOwnership((req) => req.params.userId);
+      const middleware = requireResourceOwnership(
+        (req) => req.params!.userId as string,
+      );
 
       expect(() => {
         middleware(mockReq as Request, mockRes as Response, mockNext);

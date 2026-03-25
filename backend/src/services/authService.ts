@@ -78,13 +78,13 @@ export function verifyChallengeTimestamp(
 
 export async function getUserRole(publicKey: string): Promise<UserRole> {
   try {
-    const result = await query<UserProfile>(
+    const result = await query(
       "SELECT role FROM user_profiles WHERE public_key = $1",
       [publicKey],
     );
 
     if (result.rows.length > 0) {
-      return result.rows[0]!.role;
+      return result.rows[0]!.role as UserRole;
     }
 
     // If user doesn't exist, create profile with default 'borrower' role
