@@ -7,6 +7,7 @@ import {
 } from "../controllers/authController.js";
 import { requireJwtAuth } from "../middleware/jwtAuth.js";
 import { validateBody } from "../middleware/validation.js";
+import { asyncHandler } from "../middleware/asyncHandler.js";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ const loginSchema = z.object({
 
 router.post("/challenge", validateBody(challengeSchema), requestChallenge);
 
-router.post("/login", validateBody(loginSchema), login);
+router.post("/login", validateBody(loginSchema), asyncHandler(login));
 
 router.get("/verify", requireJwtAuth, verify);
 

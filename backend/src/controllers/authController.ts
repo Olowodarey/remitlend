@@ -33,7 +33,7 @@ export const requestChallenge = (req: Request, res: Response): void => {
   });
 };
 
-export const login = (req: Request, res: Response): void => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   const { publicKey, message, signature } = req.body;
 
   if (!publicKey || typeof publicKey !== "string") {
@@ -63,7 +63,7 @@ export const login = (req: Request, res: Response): void => {
     throw AppError.unauthorized("Invalid signature");
   }
 
-  const token = generateJwtToken(publicKey);
+  const token = await generateJwtToken(publicKey);
 
   res.status(200).json({
     success: true,
@@ -79,6 +79,7 @@ export const verify = (req: Request, res: Response): void => {
     success: true,
     data: {
       publicKey: req.user?.publicKey,
+      role: req.user?.role,
       valid: true,
     },
   });
