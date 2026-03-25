@@ -4,6 +4,11 @@ import { validate } from "../middleware/validation.js";
 import { getScoreSchema, updateScoreSchema } from "../schemas/scoreSchemas.js";
 import { requireApiKey } from "../middleware/auth.js";
 import { strictRateLimiter } from "../middleware/rateLimiter.js";
+import { requireJwtAuth } from "../middleware/jwtAuth.js";
+import {
+  requireScope,
+  requireResourceOwnership,
+} from "../middleware/accessControl.js";
 
 const router = Router();
 
@@ -17,6 +22,8 @@ const router = Router();
  *       for the specified user. Used by LoanManager and other contracts to
  *       make lending decisions.
  *     tags: [Score]
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -37,7 +44,13 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get("/:userId", validate(getScoreSchema), getScore);
+router.get(
+  "/:userId",
+  requireJwtAuth,
+  requireResourceOwnership((req) => req.params.userId, ["admin", "lender"]),
+  validate(getScoreSchema),
+  getScore,
+);
 
 /**
  * @swagger
