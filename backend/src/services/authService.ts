@@ -1,12 +1,10 @@
 import jwt from "jsonwebtoken";
 import { Keypair, StrKey } from "@stellar/stellar-sdk";
 import crypto from "crypto";
+import { query } from "../db/connection.js";
+import type { JwtPayload, UserRole, UserProfile } from "../types/auth.js";
 
-export interface JwtPayload {
-  publicKey: string;
-  iat: number;
-  exp: number;
-}
+export type { JwtPayload, UserRole, UserProfile };
 
 export interface ChallengeMessage {
   message: string;
@@ -78,10 +76,38 @@ export function verifyChallengeTimestamp(
   return now - timestamp <= maxAgeMs;
 }
 
-export function generateJwtToken(publicKey: string): string {
+export async function getUserRole(publicKey: string): Promise<UserRole> {
+  try {
+    const result = await query<UserProfile>(
+      "SELECT role FROM user_profiles WHERE public_key = $1",
+      [publicKey],
+    );
+
+    if (result.rows.length > 0) {
+      return result.rows[0]!.role;
+    }
+
+    // If user doesn't exist, create profile with default 'borrower' role
+    await query(
+      "INSERT INTO user_profiles (public_key, role) VALUES ($1, $2) ON CONFLICT (public_key) DO NOTHING",
+      [publicKey, "borrower"],
+    );
+
+    return "borrower";
+  } catch (error) {
+    console.error("Error fetching user role:", error);
+    // Default to borrower role on error
+    return "borrower";
+  }
+}
+
+export async function generateJwtToken(publicKey: string): Promise<string> {
   const secret = getJwtSecret();
+  const role = await getUserRole(publicKey);
+
   const payload: Omit<JwtPayload, "iat" | "exp"> = {
     publicKey,
+    role,
   };
 
   return jwt.sign(payload, secret, {
